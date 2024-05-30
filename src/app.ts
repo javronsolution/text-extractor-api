@@ -13,73 +13,70 @@ app.set('views', path.join(__dirname, '/views'));
 
 const upload = multer({ dest: 'uploads/' });
 const client = new DocumentProcessorServiceClient();
-let aadharDetails : {key: string | null | undefined; value: string | null | undefined}[] | undefined = [];
+let letterDetails : {key: string | null | undefined; value: string | null | undefined}[] | undefined = [];
 let passportDetails: {key: string | null | undefined; value: string | null | undefined}[] | undefined = [];
 app.get('/', (req: Request, res: Response) => {
     res.render('pages/upload', {
-        detailsAadhar: [],
+        detailsLetter: [],
         detailsPassport: [],
         routeName: 'Aadhar',
     });
 });
-app.get('/upload/letter', function (req, res) {
-    res.render('pages/upload', { details: [], routeName: 'Letter' });
-});
-app.post(
-    '/upload/aadhar',
-    upload.single('document'),
-    asyncHandler(async (req: Request, res: Response) => {
-        console.log('received');
-        if (!req.file) {
-            throw new ApiError(400, 'No file uploaded');
-        }
+// app.post(
+//     '/upload/aadhar',
+//     upload.single('document'),
+//     asyncHandler(async (req: Request, res: Response) => {
+//         console.log('received');
+//         if (!req.file) {
+//             throw new ApiError(400, 'No file uploaded');
+//         }
 
-        const dataBuffer = fs.readFileSync(req.file.path);
+//         const dataBuffer = fs.readFileSync(req.file.path);
 
-        const name = `projects/${'643888402760'}/locations/${'us'}/processors/${'5d5daaca0a10cd17'}`;
+//         const name = `projects/${'643888402760'}/locations/${'us'}/processors/${'5d5daaca0a10cd17'}`;
 
-        // Convert the image data to a Buffer and base64 encode it.
-        const encodedImage = Buffer.from(dataBuffer).toString('base64');
-        const request = {
-            name,
-            rawDocument: {
-                content: encodedImage,
-                mimeType: req.file.mimetype,
-            },
-        };
+//         // Convert the image data to a Buffer and base64 encode it.
+//         const encodedImage = Buffer.from(dataBuffer).toString('base64');
+//         const request = {
+//             name,
+//             rawDocument: {
+//                 content: encodedImage,
+//                 mimeType: req.file.mimetype,
+//             },
+//         };
 
-        // Recognizes text entities in the PDF document
-        const [result] = await client.processDocument(request);
-        const { document } = result;
-        const data = document?.entities?.map((entity) => {
-            return {
-                key: entity.type,
-                value: entity.mentionText,
-            };
-        });
-        // Desired order of keys
-        const order = [
-            'id',
-            'first-name',
-            'last-name',
-            'gender',
-            'dob',
-            'address',
-        ];
-        // Sort the array
-        data?.sort((a, b) => {
-            return (
-                order.indexOf(a.key as string) - order.indexOf(b.key as string)
-            );
-        });
-        aadharDetails = data
-        res.render('pages/upload', {
-            detailsAadhar: aadharDetails,
-            detailsPassport: passportDetails,
-            routeName: 'Aadhar',
-        });
-    }),
-);
+//         // Recognizes text entities in the PDF document
+//         const [result] = await client.processDocument(request);
+//         const { document } = result;
+//         const data = document?.entities?.map((entity) => {
+//             return {
+//                 key: entity.type,
+//                 value: entity.mentionText,
+//             };
+//         });
+//         // Desired order of keys
+//         const order = [
+//             'id',
+//             'first-name',
+//             'last-name',
+//             'gender',
+//             'dob',
+//             'address',
+//         ];
+//         // Sort the array
+//         data?.sort((a, b) => {
+//             return (
+//                 order.indexOf(a.key as string) - order.indexOf(b.key as string)
+//             );
+//         });
+        
+//         // res.render('pages/upload', {
+//         //     detailsAadhar: [],
+//         //     detailsPassport: passportDetails,
+//         //     routeName: 'Aadhar',
+//         // });
+//     }),
+// );
 app.post(
     '/upload/passport',
     upload.single('document'),
@@ -136,10 +133,10 @@ app.post(
                 order.indexOf(a.key as string) - order.indexOf(b.key as string)
             );
         });
-        passportDetails = data
+        console.log(data)
         res.render('pages/upload', {
-            detailsPassport: passportDetails,
-            detailsAadhar: aadharDetails,
+            detailsPassport: data,
+            detailsLetter: [],
             routeName: 'Passport',
         });
     }),
@@ -181,7 +178,6 @@ app.post(
             'given-name',
             'family-name',
             'date-of-birth',
-            ,
             'student-id',
             'caq-or-midi-letter',
             'studdent-full-mailing-address',
@@ -215,7 +211,12 @@ app.post(
             );
         });
         console.log(data);
-        res.render('pages/upload', { details: data, routeName: 'Letter' });
+        // letterDetails = data
+        res.render('pages/upload', {
+            detailsPassport: [],
+            detailsLetter: data,
+            routeName: 'Letter',
+        });
     }),
 );
 
